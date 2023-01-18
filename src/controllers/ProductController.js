@@ -1,126 +1,139 @@
-const db = require('../configs/db');
+const models = require('../models/ProductsModel');
 
 module.exports = {
     // Get All Products
     getAllProducts(req, res) {
-        db.query("SELECT * FROM products", function (err, rows) {
-            if (err) throw err;
-            res.json({
+
+        // Call item from Models
+        models.findAll((err, items) => {
+            if (err) return res.status(500).json({
+                'success': false,
+                'message': 'Get products failed',
+                'data': err
+            });
+
+            return res.json({
                 'success': true,
                 'message': 'Get products successfuly',
-                'data': rows
-            })
-        })
+                'data': items
+            });
+        });
+
     },
 
     // Get Detail Products
     getDetailProducts(req, res) {
-        const id = req.params.id
-        db.query(`SELECT * FROM products WHERE id = ${id}`, function (err, rows) {
-            try {
-                res.json({
-                    'success': true,
-                    'message': 'Get products successfuly',
-                    'data': rows
-                })
-            } catch (error) {
-                res.json({
-                    'success': false,
-                    'message': 'Get products failed',
-                    'data': null
-                })
-            }
+
+        // Get parameter id
+        const id = req.params.id;
+
+        // Call item from Models
+        models.findId(id, (err, items) => {
+            if (err) return res.status(500).json({
+                'success': false,
+                'message': 'Find products failed',
+                'data': err
+            })
+
+            return res.json({
+                'success': true,
+                'message': 'Find products success',
+                'data': items
+            })
         })
+
     },
 
     // Delete Products
     deleteProducts(req, res) {
-        const id = req.params.id
-        db.query(`DELETE FROM products WHERE id = ${id}`, function (err, rows) {
-            try {
-                res.json({
-                    'success': true,
-                    'message': 'Delete products successfuly',
-                })
-            } catch (error) {
-                res.json({
-                    'success': false,
-                    'message': 'Delete products failed',
-                })
-            }
+        // Get parameter id
+        const id = req.params.id;
+
+        // Delete item from Models
+        models.deleteById(id, (err, items) => {
+            if (err) return res.status(500).json({
+                'success': false,
+                'message': 'Delete products failed',
+                'data': err
+            })
+
+            res.json({
+                'success': true,
+                'message': `Delete products by id ${id} successfuly`,
+            })
         })
     },
 
-    // Get Detail Products
+    // Add New Products
     addProducts(req, res) {
+        // Get Item from body
         const body = req.body;
+        let dataBody = {
+            name: body.name,
+            price: body.price
+        }
 
-        if(!body.name || !body.price || body.name == null || body.price == null ){
+        if (!body.name || !body.price || body.name == null || body.price == null) {
             return res.status(400).json({
-                message: 'Anda mengirimkan data yang salah',
+                message: 'missing required fields',
                 data: null,
             })
         }
 
-        let dataBody = {
-            name : body.name,
-            price : body.price
-        }
-        db.query(`INSERT INTO products SET ?;`,[dataBody], () => {
-            try {
-                res.json({
-                    'success': true,
-                    'message': 'Create products successfuly',
-                    'data': body
-                })
-            } catch (error) {
-                res.json({
-                    'success': false,
-                    'message': 'Create products failed',
-                    'data': null
-                })
-            }
+        // Insert item from Models
+        models.insertItem(dataBody, (err, items) => {
+            if (err) return res.status(500).json({
+                'success': false,
+                'message': 'Create products failed',
+                'data': null
+            })
+
+            return res.json({
+                'success': true,
+                'message': 'Create products successfuly',
+                'data': {
+                    id: items.insertId,
+                    ...body,
+                }
+            })
         })
     },
 
-    // Get Detail Products
+    // Update Products
     updateProducts(req, res) {
+        // Get Item from body
         const body = req.body;
+        let dataBody = {
+            name: body.name,
+            price: body.price
+        }
 
-        if(!body.name || !body.price || body.name == null || body.price == null ){
+        if (!body.name || !body.price || body.name == null || body.price == null) {
             return res.status(400).json({
-                message: 'Anda mengirimkan data yang salah',
+                message: 'missing required fields',
                 data: null,
             })
         }
 
-        const dataBody = {
-            name : body.name,
-            price : body.price
-        }
-
+        // Get parameter id
         const id = req.params.id
 
-        console.log(body);
-        console.log(id);
+        // Update item from Models
+        models.updateItem(dataBody, id, (err, items) => {
+            if (err) return res.status(500).json({
+                'success': false,
+                'message': 'Update products failed',
+                'data': null
+            })
 
-        db.query(`INSERT INTO products SET ? WHERE id = ?;`,[dataBody,id], () => {
-            try {
-                res.json({
-                    'success': true,
-                    'message': 'Update products successfuly',
-                    'data': {
-                        'id' : id,
-                        ...body
-                    }
-                })
-            } catch (error) {
-                res.json({
-                    'success': false,
-                    'message': 'Update products failed',
-                    'data': null
-                })
-            }
+            return res.json({
+                'success': true,
+                'message': 'Update products successfuly',
+                'data': {
+                    id: id,
+                    ...body,
+                }
+            })
         })
     },
 }

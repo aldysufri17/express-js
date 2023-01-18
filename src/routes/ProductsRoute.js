@@ -8,7 +8,7 @@ router.get('/products',product.getAllProducts);
 router.post('/products',product.addProducts);
 
 // Update Products
-router.patch('/products/:id',product.updateProducts);
+router.put('/products/:id',product.updateProducts);
 
 // Get Detail Products
 router.get('/products/:id',product.getDetailProducts);
