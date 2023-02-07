@@ -1,24 +1,26 @@
-const models = require('../models/ProductsModel');
+const models = require('../models');
+const Product = models.product;
 
 module.exports = {
     // Get All Products
     getAllProducts(req, res) {
 
         // Call item from Models
-        models.findAll((err, items) => {
-            if (err) return res.status(500).json({
-                'success': false,
-                'message': 'Get products failed',
-                'data': err
+        // refrensi https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-select-queries
+        Product.findAll()
+            .then((items) => {
+                res.json({
+                    message: 'Get products successfuly.',
+                    data: items,
+                });
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    success: false,
+                    message: err.message || "Get products failed.",
+                    data: null,
+                });
             });
-
-            return res.json({
-                'success': true,
-                'message': 'Get products successfuly',
-                'data': items
-            });
-        });
-
     },
 
     // Get Detail Products
@@ -28,20 +30,22 @@ module.exports = {
         const id = req.params.id;
 
         // Call item from Models
-        models.findId(id, (err, items) => {
-            if (err) return res.status(500).json({
-                'success': false,
-                'message': 'Find products failed',
-                'data': err
+        // Refrensi https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findbypk
+        Product.findByPk(id)
+            .then((items) => {
+                res.json({
+                    success: true,
+                    message: 'Get detail products successfuly.',
+                    data: items,
+                });
             })
-
-            return res.json({
-                'success': true,
-                'message': 'Find products success',
-                'data': items
+            .catch((err) => {
+                res.status(500).json({
+                    success: false,
+                    message: err.message || "Get detail products failed.",
+                    data: null,
+                })
             })
-        })
-
     },
 
     // Delete Products
@@ -50,18 +54,24 @@ module.exports = {
         const id = req.params.id;
 
         // Delete item from Models
-        models.deleteById(id, (err, items) => {
-            if (err) return res.status(500).json({
-                'success': false,
-                'message': 'Delete products failed',
-                'data': err
+        // refrensi https://sequelize.org/docs/v6/core-concepts/paranoid/#deleting
+        Product.destroy({
+                where: {
+                    id: id
+                },
             })
-
-            res.json({
-                'success': true,
-                'message': `Delete products by id ${id} successfuly`,
+            .then(() => {
+                res.json({
+                    success: true,
+                    message: `Delete products by id ${id} successfuly`
+                })
             })
-        })
+            .catch((err) => {
+                res.status(500).json({
+                    success: false,
+                    message: err.message || "Get detail products failed.",
+                })
+            })
     },
 
     // Add New Products
@@ -81,22 +91,21 @@ module.exports = {
         }
 
         // Insert item from Models
-        models.insertItem(dataBody, (err, items) => {
-            if (err) return res.status(500).json({
-                'success': false,
-                'message': 'Create products failed',
-                'data': null
+        // Refrensi https://sequelize.org/docs/v6/core-concepts/model-instances/#a-very-useful-shortcut-the-create-method
+        Product.create(dataBody)
+            .then((items) => {
+                res.json({
+                    success: true,
+                    message: 'Product create success.',
+                    data: dataBody
+                })
             })
-
-            return res.json({
-                'success': true,
-                'message': 'Create products successfuly',
-                'data': {
-                    id: items.insertId,
-                    ...body,
-                }
+            .catch((err) => {
+                res.status(500).json({
+                    success: false,
+                    message: 'Product create failed.'
+                })
             })
-        })
     },
 
     // Update Products
@@ -119,21 +128,27 @@ module.exports = {
         const id = req.params.id
 
         // Update item from Models
-        models.updateItem(dataBody, id, (err, items) => {
-            if (err) return res.status(500).json({
-                'success': false,
-                'message': 'Update products failed',
-                'data': null
-            })
-
-            return res.json({
-                'success': true,
-                'message': 'Update products successfuly',
-                'data': {
-                    id: id,
-                    ...body,
+        // refrensi https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-update-queries
+        Product.update(dataBody, {
+                where: {
+                    id: id
                 }
             })
-        })
+            .then((items) => {
+                res.json({
+                    success: true,
+                    message: 'Products update success',
+                    data: {
+                        id: id,
+                        ...body
+                    }
+                })
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    success: false,
+                    message: 'Products update failed.'
+                })
+            })
     },
 }

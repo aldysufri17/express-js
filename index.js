@@ -1,16 +1,27 @@
-const express = require('express');
 require('dotenv').config();
-const routeProducts = require('./src/routes/ProductsRoute.js');
+const express = require('express');
 const middlewareLog = require('./src/middleware/logs');
+const routes = require('./src/routes/index.js');
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
 
+// Mengizinkan domain pada browser mengakses;
+const cors = require("cors");
+var corsOptions = {
+    origin: "http://localhost:8081"
+};
+app.use(cors(corsOptions));
+
+// berfungsi untuk memparsing data JSON pada request object body.
 app.use(express.json());
+
 // Middleware
 app.use(middlewareLog);
 
-app.use('/', routeProducts);
+// Call Route
+routes(app);
 
-app.listen(port,()=>{
+// Build server
+app.listen(port, () => {
     console.log(`Server Running in port : ${port}`);
 })
